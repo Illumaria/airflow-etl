@@ -1,0 +1,7 @@
+--constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.4.1/constraints-3.7.txt
+apache-airflow==2.4.1
+apache-airflow-providers-postgres==5.2.2
+black>=22.10.0
+flake8>=5.0.4
+isort>=5.10.1
+mypy>=0.982
