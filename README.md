@@ -52,3 +52,13 @@ docker exec -ti airflow-etl-postgres-db-1 /bin/bash -c "psql -U postgres"
 \c postgres_db
 SELECT * FROM postgres_db;
 ```
+
+## Results
+
+This is the expected result for Airflow:
+
+![](results/airflow.png)
+
+And this is the expected result (before and after DAG trigger) for external Postgres DB:
+
+![](results/postgres.png)
