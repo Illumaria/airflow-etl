@@ -42,3 +42,11 @@ In those cases when docker only runs with `sudo`, don't forget that `sudo` has i
 ```bash
 sudo -E docker-compose ...
 ```
+4. Once all the services are up and running, go to [`https://localhost:8080`](https://localhost:8080) (use `airflow` for both username and password), then to `Admin` -> `Connections` -> `Add a new record`, and specify the following values to establish connection with the external Postgres DB:
+    * Connection id: `postgres_db`
+    * Type: `Postgres`
+    * Schema: `postgres_db`
+    * Host: `postgres-db`
+    * Port: `5432`
+    * User: `postgres`
+    * Password: `postgres`
