@@ -5,14 +5,13 @@ from typing import Any, Dict, List
 import pendulum
 import requests
 from airflow.decorators import dag, task, task_group
-from airflow.providers.postgres.operators.postgres import PostgresOperator
-from src.constants import BASE_MATCH_EVENTS_URL, LIVE_SCORES_URL, TABLE_NAME
-
-# from src.crud import session_scope
+from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import insert
+from src.constants import BASE_MATCH_EVENTS_URL, LIVE_SCORES_URL
+from src.crud import session_scope
 from src.entities import LiveScoresResponseModel, MatchEventsResponseModel
 from src.entities.match_events_data import Event
-
-# from src.models import Match
+from src.models import Match
 
 logger = logging.getLogger("airflow.task")
 
@@ -134,57 +133,24 @@ def get_matches_data() -> None:
     def load(transformed_data: Dict[str, Any]) -> None:
         @task()
         def load_to_database(data: Dict[str, Any]) -> None:
-            # with session_scope() as s:
-            #     match = Match(
-            #         match_id=data["match_id"],
-            #         home_name=data["home_name"],
-            #         away_name=data["away_name"],
-            #         location=data["location"],
-            #         scheduled=data["scheduled"],
-            #         status=data["status"],
-            #         home_top_goalscorer_name=data["home_top_goalscorer_name"],
-            #         home_top_goalscorer_goals=data["home_top_goalscorer_goals"],
-            #         away_top_goalscorer_name=data["away_top_goalscorer_name"],
-            #         away_top_goalscorer_goals=data["away_top_goalscorer_goals"],
-            #         home_yellow_cards=data["home_yellow_cards"],
-            #         away_yellow_cards=data["away_yellow_cards"],
-            #     )
-            #     s.add(match)
+            with session_scope() as s:
+                insert_statement = insert(Match).values([data])
 
-            load_to_db = PostgresOperator(
-                task_id="load_to_database",
-                postgres_conn_id="postgres_db",
-                autocommit=False,
-                sql=(
-                    f"INSERT INTO {TABLE_NAME} "
-                    "(match_id, home_name, away_name, location, scheduled, "
-                    "status, home_top_goalscorer_name, home_top_goalscorer_goals, "
-                    "away_top_goalscorer_name, away_top_goalscorer_goals, "
-                    "home_yellow_cards, away_yellow_cards) "
-                    "VALUES "
-                    "(%(match_id)s, '%(home_name)s', '%(away_name)s', '%(location)s', "
-                    "'%(scheduled)s', '%(status)s', '%(home_top_goalscorer_name)s', "
-                    "'%(home_top_goalscorer_goals)s', '%(away_top_goalscorer_name)s', "
-                    "'%(away_top_goalscorer_goals)s', %(home_yellow_cards)s, "
-                    "%(away_yellow_cards)s);"
-                ),
-                parameters={
-                    "match_id": data["match_id"],
-                    "home_name": data["home_name"],
-                    "away_name": data["away_name"],
-                    "location": data["location"],
-                    "scheduled": data["scheduled"],
-                    "status": data["status"],
-                    "home_top_goalscorer_name": data["home_top_goalscorer_name"],
-                    "home_top_goalscorer_goals": data["home_top_goalscorer_goals"],
-                    "away_top_goalscorer_name": data["away_top_goalscorer_name"],
-                    "away_top_goalscorer_goals": data["away_top_goalscorer_goals"],
-                    "home_yellow_cards": data["home_yellow_cards"],
-                    "away_yellow_cards": data["away_yellow_cards"],
-                },
-            )
+                primary_keys = [key.name for key in inspect(Match).primary_key]
+                update_dict = {
+                    c.name: c for c in insert_statement.excluded if not c.primary_key
+                }
 
-            load_to_db
+                if not update_dict:
+                    raise ValueError(
+                        "insert_or_update resulted in an empty update_dict"
+                    )
+
+                upsert_statement = insert_statement.on_conflict_do_update(
+                    index_elements=primary_keys,
+                    set_=update_dict,
+                )
+                s.execute(upsert_statement)
 
         load_to_database.expand(data=transformed_data)
 
