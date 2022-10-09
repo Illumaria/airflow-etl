@@ -1,16 +1,16 @@
 from typing import List
 
-from pydantic import conint, conlist
+from pydantic import Field
 
 from .common import BaseModel
 
 
 class SingleMatchModel(BaseModel):
-    id: int = conint(ge=0)  # match id
+    id: int = Field(..., ge=0)  # match id
 
 
 class MatchesModel(BaseModel):
-    match: List[SingleMatchModel] = conlist(SingleMatchModel, min_items=3)
+    match: List[SingleMatchModel] = Field(..., min_items=3)
 
 
 class LiveScoresResponseModel(BaseModel):

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Literal
 
-from pydantic import conint
+from pydantic import Field
 
 from .common import BaseModel
 
@@ -32,7 +32,7 @@ class SingleEventModel(BaseModel):
 
 
 class MatchModel(BaseModel):
-    id: int = conint(ge=0)  # match id
+    id: int = Field(..., ge=0)  # match id
     home_name: str
     away_name: str
     location: str
