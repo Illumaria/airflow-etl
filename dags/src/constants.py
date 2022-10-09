@@ -10,6 +10,4 @@ BASE_MATCH_EVENTS_URL = (
 )
 
 TABLE_NAME = "postgres_db"
-POSTGRES_DB_URI = (
-    f"postgresql+psycopg2://postgres:postgres@postgres-db:5439/{TABLE_NAME}"
-)
+POSTGRES_DB_URI = f"postgresql+psycopg2://postgres:postgres@postgres-db/{TABLE_NAME}"

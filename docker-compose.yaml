@@ -26,8 +26,6 @@ x-airflow-common: &airflow-common
 services:
   postgres-db:
     build: images/postgres-docker
-    ports:
-      - 5439:5432
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
