@@ -29,9 +29,16 @@ def get_matches_data() -> None:
         @task()
         def request_live_scores_data(url: str = LIVE_SCORES_URL) -> List[int]:
             logger.info(f"url: {url}")
+
             response = requests.get(url)
+            logger.info(f"response: {response.json()}")
+
             model = LiveScoresResponseModel(**response.json())
+            logger.info(f"model: {model}")
+
             three_nearest_matches = model.data.match[:3]
+            logger.info(f"three_nearest_matches: {three_nearest_matches}")
+
             match_ids = [x.id for x in three_nearest_matches]
             return match_ids
 
@@ -41,8 +48,13 @@ def get_matches_data() -> None:
         ) -> Dict[str, Any]:
             url = f"{url}{match_id}"
             logger.info(f"url: {url}")
+
             response = requests.get(url)
+            logger.info(f"response: {response.json()}")
+
             model = MatchEventsResponseModel(**response.json())
+            logger.info(f"model: {model}")
+
             match_data = model.data.match.dict()
             events_data = [x.dict() for x in model.data.event]
             return {"match_data": match_data, "events_data": events_data}
